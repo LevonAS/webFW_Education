@@ -62,6 +62,7 @@ class Framework:
         # запуск контроллера с передачей объекта request
         code, body = view(request)
         start_response(code, [('Content-Type', 'text/html')])
+        # print("///сl.Framework/ body: ", body.encode('utf-8'))
         return [body.encode('utf-8')]
 
     @staticmethod

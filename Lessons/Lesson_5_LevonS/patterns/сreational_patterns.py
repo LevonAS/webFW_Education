@@ -64,6 +64,7 @@ class RecordCourse(Course):
     pass
 
 
+# порождающий паттерн Абстрактная фабрика - фабрика курсов
 class CourseFactory:
     types = {
         'interactive': InteractiveCourse,
