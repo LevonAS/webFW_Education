@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block sidebar %}
+	{% include "inc_sidebar.html" %}
+{% endblock %}
+
+{% block body %}
+
+	<a href="/student-create/">Создать студента</a>
+
+    <h1>Список студентов</h1>
+    <div>
+
+        {% for item in objects_list %}
+        <li>
+            {{item.name}}
+        </li>
+        {% endfor %}
+    </div>
+{% endblock %}
