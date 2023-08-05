@@ -1,5 +1,6 @@
 from copy import deepcopy
 from quopri import decodestring
+from .behavioral_patterns import FileWriter, Subject, SmsNotifier, EmailNotifier
 
 
 # абстрактный пользователь
@@ -15,11 +16,16 @@ class Teacher(User):
 
 # студент
 class Student(User):
-    def __init__(self, name):
+    auto_id = 0
+
+    def __init__(self, name):       
+        self.id = Student.auto_id
+        Student.auto_id += 1
+        super().__init__(name)
         self.courses = []
-        self.name = name
 
 
+# порождающий паттерн Абстрактная фабрика - фабрика пользователей
 class UserFactory:
     types = {
         'student': Student,
@@ -28,11 +34,11 @@ class UserFactory:
 
     # порождающий паттерн Фабричный метод
     @classmethod
-    def create(cls, type_):
-        return cls.types[type_]()
+    def create(cls, type_, name):
+        return cls.types[type_](name)
 
 
-# порождающий паттерн Прототип
+# порождающий паттерн Прототип - Курс
 class CoursePrototype:
     # прототип курсов обучения
 
@@ -40,45 +46,49 @@ class CoursePrototype:
         return deepcopy(self)
 
 
-class Course(CoursePrototype):
+class Course(CoursePrototype, Subject):
+    auto_id = 0
 
     def __init__(self, name, category):
+        self.id = Course.auto_id
+        Course.auto_id += 1
         self.name = name
         self.category = category
         self.category.courses.append(self)
         self.students = []
+        # self.attach(EmailNotifier())      
+        super().__init__()
+
+    def __getitem__(self, item):
+        return self.students[item]
 
     def add_student(self, student: Student):
-        self.students.append(student)
-        student.courses.append(self)
-        self.notify()
+        if self.students.count(student):
+            print(f"Студент {student.name} уже есть в списке")
+        else:
+            self.students.append(student)
+            # self.subject = self
+            # self.observers.append(EmailNotifier())
+            print("self.observers", self.observers)
+            print("self.students", self.students)
+            
+            student.courses.append(self)
+            self.notify()
 
 
-# интерактивный курс
+# Интерактивный курс
 class InteractiveCourse(Course):
     pass
 
 
-# курс в записи
+# Курс в записи
 class RecordCourse(Course):
     pass
 
 
-# порождающий паттерн Абстрактная фабрика - фабрика курсов
-class CourseFactory:
-    types = {
-        'interactive': InteractiveCourse,
-        'record': RecordCourse
-    }
-
-    # порождающий паттерн Фабричный метод
-    @classmethod
-    def create(cls, type_, name, category):
-        return cls.types[type_](name, category)
-
-
-# категория
+# Категория
 class Category:
+    # реестр?
     auto_id = 0
 
     def __init__(self, name, category):
@@ -95,7 +105,20 @@ class Category:
         return result
 
 
-# основной интерфейс проекта
+# порождающий паттерн Абстрактная фабрика - фабрика курсов
+class CourseFactory:
+    types = {
+        'interactive': InteractiveCourse,
+        'record': RecordCourse
+    }
+
+    # порождающий паттерн Фабричный метод
+    @classmethod
+    def create(cls, type_, name, category):
+        return cls.types[type_](name, category)
+
+
+# Основной интерфейс проекта
 class Engine:
     def __init__(self):
         self.teachers = []
@@ -104,8 +127,8 @@ class Engine:
         self.categories = []
 
     @staticmethod
-    def create_user(type_):
-        return UserFactory.create(type_)
+    def create_user(type_, name):
+        return UserFactory.create(type_, name)
 
     @staticmethod
     def create_category(name, category=None):
@@ -117,6 +140,13 @@ class Engine:
             if item.id == id:
                 return item
         raise Exception(f'Нет категории с id = {id}')
+    
+    def find_student_by_id(self, id):
+        for item in self.students:
+            print('item', item.id)
+            if item.id == id:
+                return item
+        raise Exception(f'Нет студента с id = {id}')
 
     @staticmethod
     def create_course(type_, name, category):
@@ -128,10 +158,13 @@ class Engine:
                 return item
         return None
     
-    @staticmethod
-    def create_student(name):
-        return Student(name)
-    
+    def find_course_by_id(self, id):
+        for item in self.courses:
+            print('item', item.id)
+            if item.id == id:
+                return item
+        raise Exception(f'Нет курса  с id = {id}')
+
     def get_student(self, name) -> Student:
         for item in self.students:
             if item.name == name:
@@ -166,9 +199,11 @@ class SingletonByName(type):
 
 class Logger(metaclass=SingletonByName):
 
-    def __init__(self, name):
+    def __init__(self, name, writer=FileWriter()):
         self.name = name
+        self.writer = writer
 
-    @staticmethod
-    def log(text):
-        print('log--->', text)
+    def log(self, text):
+        text = f'log---> {text}'
+        self.writer.write(text)
+        

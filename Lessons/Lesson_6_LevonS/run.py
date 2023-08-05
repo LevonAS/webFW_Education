@@ -2,7 +2,7 @@ from wsgiref.simple_server import make_server
 from pprint import pprint
 import os, sys
 
-from leo_framework.main import Framework
+from leo_framework.main import Framework, DebugApplication, FakeApplication
 from urls import fronts
 from views import routes
 
