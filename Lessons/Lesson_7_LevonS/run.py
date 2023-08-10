@@ -12,7 +12,7 @@ project_directory = os.getcwd()
 print("/\ project_directory: ", project_directory)
 print("/\ sys.path: ", sys.path)
 
-print("/\ routes: ")
+print("/\ Генерящаяся при запуске таблица routes: ")
 pprint(routes)
 
 application = Framework(routes, fronts)

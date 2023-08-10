@@ -1,7 +1,9 @@
 from copy import deepcopy
 from quopri import decodestring
-from .behavioral_patterns import FileWriter, Subject, SmsNotifier, EmailNotifier
 
+from .behavioral_patterns import FileWriter, Subject, SmsNotifier, EmailNotifier
+from .architectural_system_pattern_unit_of_work import DomainObject
+# from .data_mapper_patterns import MapperRegistry
 
 # абстрактный пользователь
 class User:
@@ -10,19 +12,19 @@ class User:
 
 
 # преподаватель
-class Teacher(User):
-    pass
+class Teacher(User, DomainObject):
+
+    def __init__(self, teacher_id, name):
+        super().__init__(name)
+        self.teacher_id = teacher_id
 
 
 # студент
-class Student(User):
-    auto_id = 0
+class Student(User, DomainObject):
 
-    def __init__(self, name):       
-        self.id = Student.auto_id
-        Student.auto_id += 1
+    def __init__(self, student_id, name):
         super().__init__(name)
-        self.courses = []
+        self.student_id = student_id
 
 
 # порождающий паттерн Абстрактная фабрика - фабрика пользователей
@@ -35,7 +37,15 @@ class UserFactory:
     # порождающий паттерн Фабричный метод
     @classmethod
     def create(cls, type_, name):
-        return cls.types[type_](name)
+        return cls.types[type_](None, name)
+
+
+
+class CourseHavingStudent(DomainObject):
+
+    def __init__(self, id, course_id, student_id):
+        self.course_id = course_id
+        self.student_id = student_id
 
 
 # порождающий паттерн Прототип - Курс
@@ -46,34 +56,34 @@ class CoursePrototype:
         return deepcopy(self)
 
 
-class Course(CoursePrototype, Subject):
-    auto_id = 0
+class Course(CoursePrototype, Subject, DomainObject):
 
-    def __init__(self, name, category):
-        self.id = Course.auto_id
-        Course.auto_id += 1
+    def __init__(self, course_id, name, category_id):
+        self.course_id = course_id
         self.name = name
-        self.category = category
-        self.category.courses.append(self)
-        self.students = []
-        # self.attach(EmailNotifier())      
+        self.category_id = category_id
+        # self.category.courses.append(self)
+        # self.students = []
         super().__init__()
 
-    def __getitem__(self, item):
-        return self.students[item]
+    # def __getitem__(self, item):
+    #     return self.students[item]
 
     def add_student(self, student: Student):
-        if self.students.count(student):
-            print(f"Студент {student.name} уже есть в списке")
-        else:
-            self.students.append(student)
-            # self.subject = self
-            # self.observers.append(EmailNotifier())
-            print("self.observers", self.observers)
-            print("self.students", self.students)
+        # course = MapperRegistry.get_current_mapper('course').course_by_name(course_name)
+        
+        return CourseHavingStudent(None, self.course_id, student.student_id)
+        # if self.students.count(student):
+        #     print(f"Студент {student.name} уже есть в списке")
+        # else:
+        #     self.students.append(student)
+        #     # self.subject = self
+        #     # self.observers.append(EmailNotifier())
+        #     print("self.observers: ", self.observers)
+        #     print("self.students: ", self.students)
             
-            student.courses.append(self)
-            self.notify()
+        #     student.courses.append(self)
+        #     self.notify()
 
 
 # Интерактивный курс
@@ -87,22 +97,19 @@ class RecordCourse(Course):
 
 
 # Категория
-class Category:
-    # реестр?
-    auto_id = 0
+class Category(DomainObject):
 
-    def __init__(self, name, category):
-        self.id = Category.auto_id
-        Category.auto_id += 1
+    def __init__(self, category_id, name, category):
+        self.category_id = category_id
         self.name = name
         self.category = category
-        self.courses = []
+        # self.courses = []
 
-    def course_count(self):
-        result = len(self.courses)
-        if self.category:
-            result += self.category.course_count()
-        return result
+    # def course_count(self):
+    #     result = len(self.courses)
+    #     if self.category:
+    #         result += self.category.course_count()
+    #     return result
 
 
 # порождающий паттерн Абстрактная фабрика - фабрика курсов
@@ -114,8 +121,8 @@ class CourseFactory:
 
     # порождающий паттерн Фабричный метод
     @classmethod
-    def create(cls, type_, name, category):
-        return cls.types[type_](name, category)
+    def create(cls, type_, name, category_id):
+        return cls.types[type_](None, name, category_id)
 
 
 # Основной интерфейс проекта
@@ -132,7 +139,7 @@ class Engine:
 
     @staticmethod
     def create_category(name, category=None):
-        return Category(name, category)
+        return Category(None, name, category)
 
     def find_category_by_id(self, id):
         for item in self.categories:
@@ -140,6 +147,11 @@ class Engine:
             if item.id == id:
                 return item
         raise Exception(f'Нет категории с id = {id}')
+
+    def find_category_by_id_mapper(self, id):
+        mapper = MapperRegistry.get_current_mapper('category')
+        return mapper.find_cat_by_id(id)
+
     
     def find_student_by_id(self, id):
         for item in self.students:
@@ -147,10 +159,11 @@ class Engine:
             if item.id == id:
                 return item
         raise Exception(f'Нет студента с id = {id}')
+    
 
     @staticmethod
-    def create_course(type_, name, category):
-        return CourseFactory.create(type_, name, category)
+    def create_course(type_, name, category_id):
+        return CourseFactory.create(type_, name, category_id)
 
     def get_course(self, name):
         for item in self.courses:

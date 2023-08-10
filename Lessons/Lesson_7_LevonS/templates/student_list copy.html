@@ -22,8 +22,10 @@
             {% for item in students %}
             <li>
                 Студент - <a href="/student-details/?id={{item.student_id}}">{{item.name}}</a>
-
-                
+                ,   записан на курс(ы): 
+                {% for course in item.courses %}
+                {{course.name}}
+                {% endfor %}
             </li>
             {% endfor %}
         </div>

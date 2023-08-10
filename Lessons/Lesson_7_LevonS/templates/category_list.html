@@ -7,14 +7,17 @@
 {% block body %}
 	<div id="content">
 		<!-- insert the page content here -->
-        <a href="/products/">назад</a>
-
         <div>
+			<a href="/create-category/">Создать новую категорию</a>
+		</div>
+		<div>
 			<h1>Список существующих категорий</h1>
-			{% for item in objects_list %}
+			{% for item in categories %}
 			<li>
-				{{item.name}}. <span>Количество курсов: {{item.course_count()}}</span>
-				<a href="/courses-list/?id={{item.id}}">Показать курсы</a>
+				{{item.name}}, 
+				<a href="/create-course/?id={{item.category_id}}">Создать новый курс</a>,   
+				<a href="/courses-list/?id={{item.category_id}}">Показать курсы</a>
+				
 			</li>
 			{% endfor %}
 		</div>

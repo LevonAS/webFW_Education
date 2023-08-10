@@ -16,7 +16,7 @@
         <h1>{{student.name}}</h1>
         <div>
             Записан на курс(ы):
-            {% for item in student.courses %}
+            {% for item in my_courses %}
             
             <li>
                 {{item.name}}
@@ -26,7 +26,7 @@
 
         <h1>Добавление студента на курс</h1>
         <form method="post">
-            <select size="3" name="course_name">
+            <select size="5" name="course_name">
                 {% for item in courses %}
                 <option value="{{item.name}}">{{item.name}}</option>
                 {% endfor %}
