@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block sidebar %}
+	{% include "inc_sidebar.html" %}
+{% endblock %}
+
+{% block body %}
+	<div id="content">
+		<!-- insert the page content here -->
+        <div>
+			<a href="/create-category/">Создать новую категорию</a>
+		</div>
+		<div>
+			<h1>Список существующих категорий</h1>
+			{% for item in objects_list %}
+			<li>
+				{{item.name}}
+				
+			</li>
+			{% endfor %}
+		</div>
+  	</div>
+{% endblock %}

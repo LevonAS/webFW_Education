@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block sidebar %}
+	{% include "inc_sidebar.html" %}
+{% endblock %}
+
+{% block body %}
+
+	<div id="content">
+		<!-- insert the page content here -->
+        <div>
+            <li>
+                <a href="/student-list/">Список студентов</a>
+            </li>
+        </div>
+        <h1>{{student.name}}</h1>
+        <div>
+            Записан на курс(ы):
+            {% for item in my_courses %}
+            
+            <li>
+                {{item.name}}
+            </li>
+            {% endfor %}
+        </div>
+
+        <h1>Добавление студента на курс</h1>
+        <form method="post">
+            <select size="5" name="course_name">
+                {% for item in courses %}
+                <option value="{{item.name}}">{{item.name}}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">Записать</button>
+        </form>
+  	</div>
+{% endblock %}

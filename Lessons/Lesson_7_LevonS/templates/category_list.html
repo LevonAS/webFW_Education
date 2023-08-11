@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block sidebar %}
+	{% include "inc_sidebar.html" %}
+{% endblock %}
+
+{% block body %}
+	<div id="content">
+		<!-- insert the page content here -->
+        <div>
+			<a href="/create-category/">Создать новую категорию</a>
+		</div>
+		<div>
+			<h1>Список существующих категорий</h1>
+			{% for item in categories %}
+			<li>
+				{{item.name}}, 
+				<a href="/create-course/?id={{item.category_id}}">Создать новый курс</a>,   
+				<a href="/courses-list/?id={{item.category_id}}">Показать курсы</a>
+				
+			</li>
+			{% endfor %}
+		</div>
+  	</div>
+{% endblock %}
